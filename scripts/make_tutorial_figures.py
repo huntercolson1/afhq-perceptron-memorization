@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+import subprocess
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -229,83 +230,60 @@ def make_capacity_boundary_figure(output_dir: Path) -> None:
     plt.close(fig)
 
 
-def make_title_plate(data_root: Path, output_dir: Path, seed: int = 7) -> None:
-    x_all, true_labels_all, paths_all = load_afhq_cat_dog(data_root, 5000, seed)
-    rng = np.random.default_rng(seed)
-    chosen = rng.choice(np.arange(len(paths_all)), size=6, replace=False)
-    random_labels = rng.choice(np.array([-1, 1], dtype=np.int8), size=6)
+def make_experiment_pipeline(output_dir: Path) -> None:
+    dot_source = r"""
+digraph G {
+  graph [
+    rankdir=LR,
+    bgcolor="#fbfaf7",
+    pad=0.22,
+    nodesep=0.42,
+    ranksep=0.58,
+    splines=line,
+    dpi=320
+  ];
+  node [
+    shape=rect,
+    style="filled",
+    fixedsize=true,
+    width=1.50,
+    height=0.50,
+    margin="0.10,0.06",
+    fillcolor="#ffffff",
+    color="#18212f",
+    fontcolor="#18212f",
+    penwidth=1.05,
+    fontname="Times-Roman",
+    fontsize=15
+  ];
+  edge [
+    color="#7c4a3a",
+    penwidth=1.45,
+    arrowsize=0.68
+  ];
 
-    fig = plt.figure(figsize=(12, 4.7))
-    grid = fig.add_gridspec(2, 6, width_ratios=[1, 1, 0.18, 1.4, 0.18, 1.65], wspace=0.08, hspace=0.1)
+  images [label="AFHQ cat/dog\nimages"];
+  gray [label="64 x 64\ngrayscale"];
+  vectors [label="4096-pixel\nvectors"];
+  bias [label="bias column\n4097 parameters", width=1.72];
+  labels [label="random labels\n-1 or +1"];
+  proof [label="separator proof\nand perceptron", width=1.72];
 
-    for slot, idx in enumerate(chosen[:4]):
-        ax = fig.add_subplot(grid[slot // 2, slot % 2])
-        ax.imshow(unstandardized_image(paths_all[idx]), cmap="gray")
-        true_name = "dog" if true_labels_all[idx] == 1 else "cat"
-        assigned = "+1" if random_labels[slot] == 1 else "-1"
-        ax.set_title(f"{true_name}, random {assigned}", fontsize=8.5, pad=3)
-        ax.axis("off")
-
-    ax_arrow_1 = fig.add_subplot(grid[:, 2])
-    ax_arrow_1.axis("off")
-    ax_arrow_1.annotate(
-        "",
-        xy=(0.9, 0.5),
-        xytext=(0.1, 0.5),
-        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": ACCENT},
-        xycoords=ax_arrow_1.transAxes,
-    )
-
-    ax_matrix = fig.add_subplot(grid[:, 3])
-    ax_matrix.axis("off")
-    rows, cols = 7, 13
-    for r in range(rows):
-        for c in range(cols):
-            fc = "#ffffff" if c < cols - 1 else "#fff1d4"
-            ax_matrix.add_patch(
-                Rectangle(
-                    (0.08 + c * 0.062, 0.2 + (rows - r - 1) * 0.075),
-                    0.062,
-                    0.075,
-                    facecolor=fc,
-                    edgecolor=GRID,
-                    lw=0.75,
-                    transform=ax_matrix.transAxes,
-                )
+  images -> gray -> vectors -> bias -> labels -> proof;
+}
+"""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    figure_path = output_dir / "experiment_pipeline.png"
+    try:
+        with figure_path.open("wb") as png:
+            subprocess.run(
+                ["dot", "-Tpng"],
+                input=dot_source.encode("utf-8"),
+                stdout=png,
+                check=True,
             )
-    ax_matrix.text(0.49, 0.84, r"$X_{\mathrm{aug}}$", ha="center", fontsize=18, color=INK, transform=ax_matrix.transAxes)
-    ax_matrix.text(0.49, 0.13, "4096 pixels plus one bias column", ha="center", fontsize=8.5, color=MUTED, transform=ax_matrix.transAxes)
-
-    ax_arrow_2 = fig.add_subplot(grid[:, 4])
-    ax_arrow_2.axis("off")
-    ax_arrow_2.annotate(
-        "",
-        xy=(0.9, 0.5),
-        xytext=(0.1, 0.5),
-        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": ACCENT},
-        xycoords=ax_arrow_2.transAxes,
-    )
-
-    ax_sep = fig.add_subplot(grid[:, 5])
-    rng_plot = np.random.default_rng(seed + 100)
-    positive = rng_plot.normal(loc=[0.6, 1.0], scale=[0.23, 0.22], size=(24, 2))
-    negative = rng_plot.normal(loc=[1.05, 0.45], scale=[0.24, 0.22], size=(24, 2))
-    ax_sep.scatter(positive[:, 0], positive[:, 1], s=28, color=GREEN, edgecolor=INK, linewidth=0.4)
-    ax_sep.scatter(negative[:, 0], negative[:, 1], s=28, color=PLUM, edgecolor=INK, linewidth=0.4)
-    xs = np.linspace(0.15, 1.5, 100)
-    ax_sep.plot(xs, -0.75 * xs + 1.42, color=INK, linewidth=1.6)
-    ax_sep.fill_between(xs, -0.75 * xs + 1.42, 1.7, color=GREEN, alpha=0.08)
-    ax_sep.fill_between(xs, 0.0, -0.75 * xs + 1.42, color=PLUM, alpha=0.08)
-    ax_sep.set_xlim(0.12, 1.55)
-    ax_sep.set_ylim(0.02, 1.55)
-    ax_sep.set_xticks([])
-    ax_sep.set_yticks([])
-    ax_sep.set_title("separation geometry", fontsize=8.5, pad=5)
-    for spine in ["top", "right"]:
-        ax_sep.spines[spine].set_visible(False)
-
-    fig.savefig(output_dir / "title_plate.png", dpi=320, bbox_inches="tight")
-    plt.close(fig)
+    except FileNotFoundError as exc:
+        raise RuntimeError("Graphviz `dot` is required to build experiment_pipeline.png.") from exc
 
 
 def make_concept_figures(output_dir: Path) -> None:
@@ -358,44 +336,7 @@ def make_concept_figures(output_dir: Path) -> None:
     fig.savefig(output_dir / "xor_nonseparable.png", dpi=320, bbox_inches="tight")
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(12.8, 3.0))
-    ax.axis("off")
-    boxes = [
-        ("AFHQ cat/dog\nimages", 0.085, 0.115),
-        ("64 x 64\ngrayscale", 0.245, 0.115),
-        ("4096-pixel\nvectors", 0.405, 0.12),
-        ("add bias column:\n4097 parameters", 0.575, 0.145),
-        ("random labels:\n-1 or +1", 0.750, 0.12),
-        ("separator proof\nand perceptron", 0.910, 0.125),
-    ]
-    box_h = 0.31
-    y_mid = 0.55
-    for idx, (text, x, box_w) in enumerate(boxes):
-        ax.add_patch(
-            FancyBboxPatch(
-                (x - box_w / 2, y_mid - box_h / 2),
-                box_w,
-                box_h,
-                boxstyle="round,pad=0.018,rounding_size=0.012",
-                linewidth=1.15,
-                edgecolor=INK,
-                facecolor="#ffffff",
-                transform=ax.transAxes,
-            )
-        )
-        ax.text(x, y_mid, text, ha="center", va="center", fontsize=10.5, color=INK, transform=ax.transAxes)
-        if idx < len(boxes) - 1:
-            next_x, next_w = boxes[idx + 1][1], boxes[idx + 1][2]
-            ax.annotate(
-                "",
-                xy=(next_x - next_w / 2 - 0.014, y_mid),
-                xytext=(x + box_w / 2 + 0.014, y_mid),
-                arrowprops={"arrowstyle": "->", "lw": 1.45, "color": ACCENT, "shrinkA": 0, "shrinkB": 0},
-                xycoords=ax.transAxes,
-                textcoords=ax.transAxes,
-            )
-    fig.savefig(output_dir / "experiment_pipeline.png", dpi=320, bbox_inches="tight")
-    plt.close(fig)
+    make_experiment_pipeline(output_dir)
 
 
 def make_training_journey(data_root: Path, output_dir: Path, seed: int = 7) -> None:
@@ -507,10 +448,6 @@ def make_training_journey(data_root: Path, output_dir: Path, seed: int = 7) -> N
 def main() -> None:
     project_root = Path(__file__).resolve().parents[1]
     make_concept_figures(project_root / "outputs" / "figures")
-    make_title_plate(
-        data_root=project_root / "data" / "raw" / "kaggle_animal_faces",
-        output_dir=project_root / "outputs" / "figures",
-    )
     make_training_journey(
         data_root=project_root / "data" / "raw" / "kaggle_animal_faces",
         output_dir=project_root / "outputs" / "figures",

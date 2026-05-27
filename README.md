@@ -123,6 +123,9 @@ python -m pip install -r requirements.txt
 This project pins `kagglehub==0.3.13` because a newer local KaggleHub install
 hit a `kagglesdk` import mismatch during verification.
 
+Regenerating the tutorial figures also requires Graphviz's `dot` command. On
+macOS, install it with `brew install graphviz`.
+
 ## Download the data
 
 Try the KaggleHub path first:

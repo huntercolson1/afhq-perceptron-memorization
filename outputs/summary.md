@@ -1,4 +1,4 @@
-# AFHQ Perceptron Memorization Results
+# High-Dimensional Perceptron Memorization Results
 
 Data source: Kaggle AFHQ dataset (andrewmvd/animal-faces), local data/raw
 

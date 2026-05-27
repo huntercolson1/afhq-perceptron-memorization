@@ -62,7 +62,7 @@ def write_summary(results: list[ExperimentResult], output_dir: Path, source_name
     output_dir.mkdir(parents=True, exist_ok=True)
     md_path = output_dir / "summary.md"
     with md_path.open("w") as f:
-        f.write("# AFHQ Perceptron Memorization Results\n\n")
+        f.write("# High-Dimensional Perceptron Memorization Results\n\n")
         f.write(f"Data source: {source_name}\n\n")
         f.write(f"Image shape: {IMAGE_SIZE} x {IMAGE_SIZE} grayscale\n\n")
         f.write(f"Input dimension: {INPUT_DIM}; bias-augmented dimension: {BIAS_DIM}\n\n")
