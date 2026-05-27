@@ -3,6 +3,8 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache/
 .DS_Store
+tmp/
+*.executed.ipynb
 
 # Keep generated outputs local unless deliberately packaging the experiment.
 outputs/**/*.tmp
