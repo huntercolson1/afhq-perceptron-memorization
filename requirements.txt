@@ -1,0 +1,9 @@
+numpy
+pillow
+matplotlib
+tqdm
+kagglehub==0.3.13
+jupyterlab
+ipykernel
+pandas
+pytest

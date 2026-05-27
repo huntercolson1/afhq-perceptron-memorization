@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+
+# Keep generated outputs local unless deliberately packaging the experiment.
+outputs/**/*.tmp
+
+# AFHQ is large and should not be committed to source control.
+data/raw/kaggle_animal_faces/
+data/raw/afhq/
+data/raw/*.zip

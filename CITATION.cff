@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: High-Dimensional Perceptron Memorization on AFHQ
+message: If you use this experiment, please cite this repository and the AFHQ dataset.
+authors:
+  - family-names: Colson
+    given-names: Hunter
+date-released: 2026-05-27
+license: MIT
+references:
+  - type: conference-paper
+    title: "StarGAN v2: Diverse Image Synthesis for Multiple Domains"
+    authors:
+      - family-names: Choi
+        given-names: Yunjey
+      - family-names: Uh
+        given-names: Youngjung
+      - family-names: Yoo
+        given-names: Jaejun
+      - family-names: Ha
+        given-names: Jung-Woo
+    conference:
+      name: IEEE/CVF Conference on Computer Vision and Pattern Recognition
+    year: 2020

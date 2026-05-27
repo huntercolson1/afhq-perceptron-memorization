@@ -1,0 +1,46 @@
+"""Linear separator and perceptron routines for randomized-label experiments."""
+
+from __future__ import annotations
+
+import numpy as np
+
+
+def add_bias(x: np.ndarray) -> np.ndarray:
+    return np.c_[x.astype(np.float64), np.ones(x.shape[0], dtype=np.float64)]
+
+
+def vc_linear_system_solution(x: np.ndarray, y: np.ndarray) -> tuple[int, float]:
+    """Construct the minimum-norm linear solution to X_aug w ~= y."""
+    x_aug = add_bias(x)
+    rank = int(np.linalg.matrix_rank(x_aug, tol=1e-8))
+    w, *_ = np.linalg.lstsq(x_aug, y.astype(np.float64), rcond=None)
+    margins = y * (x_aug @ w)
+    train_error = float(np.mean(margins <= 0))
+    return rank, train_error
+
+
+def run_perceptron(
+    x: np.ndarray,
+    y: np.ndarray,
+    max_epochs: int,
+    seed: int,
+) -> tuple[float, int, int, bool]:
+    """Run Rosenblatt's perceptron learning rule on labels in {-1, +1}."""
+    rng = np.random.default_rng(seed)
+    w = np.zeros(x.shape[1], dtype=np.float64)
+    b = 0.0
+    updates = 0
+
+    for epoch in range(1, max_epochs + 1):
+        mistakes = 0
+        for i in rng.permutation(x.shape[0]):
+            if y[i] * float(x[i] @ w + b) <= 0:
+                w += y[i] * x[i]
+                b += float(y[i])
+                updates += 1
+                mistakes += 1
+        if mistakes == 0:
+            return 0.0, epoch, updates, True
+
+    scores = x @ w + b
+    return float(np.mean(y * scores <= 0)), max_epochs, updates, False
