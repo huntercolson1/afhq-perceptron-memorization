@@ -10,6 +10,42 @@ import matplotlib.pyplot as plt
 from .config import BIAS_DIM, IMAGE_SIZE, INPUT_DIM
 from .experiment import ExperimentResult
 
+INK = "#18212f"
+MUTED = "#657184"
+BLUE = "#2674b8"
+GREEN = "#277a55"
+PLUM = "#7a4eab"
+GOLD = "#c58b2d"
+PAPER = "#fbfaf7"
+GRID = "#d8d2c7"
+
+
+def set_plot_style() -> None:
+    plt.rcParams.update(
+        {
+            "figure.facecolor": PAPER,
+            "axes.facecolor": PAPER,
+            "axes.edgecolor": INK,
+            "axes.labelcolor": INK,
+            "xtick.color": MUTED,
+            "ytick.color": MUTED,
+            "grid.color": GRID,
+            "font.family": "DejaVu Serif",
+            "font.size": 11,
+            "axes.labelsize": 11,
+            "legend.frameon": True,
+            "legend.facecolor": "#ffffff",
+            "legend.edgecolor": GRID,
+            "savefig.facecolor": PAPER,
+        }
+    )
+
+
+def finish_axes(ax: plt.Axes) -> None:
+    ax.grid(True, alpha=0.35)
+    for spine in ["top", "right"]:
+        ax.spines[spine].set_visible(False)
+
 
 def write_results_csv(results: list[ExperimentResult], output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -55,68 +91,75 @@ def write_summary(results: list[ExperimentResult], output_dir: Path, source_name
 
 
 def write_training_error_plot(results: list[ExperimentResult], output_dir: Path) -> Path:
+    set_plot_style()
     output_dir.mkdir(parents=True, exist_ok=True)
     ns = [r.sample_size for r in results]
     vc_errors = [r.vc_solution_train_error for r in results]
     p_errors = [r.perceptron_train_error for r in results]
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(ns, vc_errors, marker="o", label="exact separator proof: solve Xw = y")
-    plt.plot(ns, p_errors, marker="o", label="perceptron learning rule")
-    plt.axvline(BIAS_DIM, color="black", linestyle="--", linewidth=1, label="d + 1 = 4097")
-    plt.xlabel("Number of randomly labeled examples")
-    plt.ylabel("Training error")
-    plt.ylim(-0.02, 1.0)
-    plt.legend()
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(ns, vc_errors, marker="o", linewidth=2.2, color=GREEN, label="exact separator proof")
+    ax.plot(ns, p_errors, marker="o", linewidth=2.2, color=BLUE, label="perceptron after 50 epochs")
+    ax.axvline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="d + 1 = 4097")
+    ax.set_xlabel("Number of randomly labeled examples")
+    ax.set_ylabel("Training error")
+    ax.set_ylim(-0.02, 0.34)
+    ax.legend(loc="upper left")
+    finish_axes(ax)
+    fig.tight_layout()
 
     figure_path = output_dir / "training_error.png"
-    plt.savefig(figure_path, dpi=200)
-    plt.close()
+    fig.savefig(figure_path, dpi=320, bbox_inches="tight")
+    plt.close(fig)
     return figure_path
 
 
 def write_rank_plot(results: list[ExperimentResult], output_dir: Path) -> Path:
+    set_plot_style()
     output_dir.mkdir(parents=True, exist_ok=True)
     ns = [r.sample_size for r in results]
     ranks = [r.rank_with_bias for r in results]
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(ns, ranks, marker="o", color="#2f6f8f", label="observed rank")
-    plt.plot(ns, ns, linestyle=":", color="#6b7280", label="rank = N")
-    plt.axhline(BIAS_DIM, color="black", linestyle="--", linewidth=1, label="maximum rank = 4097")
-    plt.xlabel("Number of examples")
-    plt.ylabel("Rank of bias-augmented data matrix")
-    plt.ylim(0, BIAS_DIM + 350)
-    plt.legend()
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(ns, ranks, marker="o", linewidth=2.2, color=BLUE, label="observed rank")
+    ax.plot(ns, ns, linestyle=":", linewidth=1.6, color=MUTED, label="rank = N")
+    ax.axhline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="maximum rank = 4097")
+    ax.set_xlabel("Number of examples")
+    ax.set_ylabel("Rank of bias-augmented data matrix")
+    ax.set_ylim(0, BIAS_DIM + 350)
+    ax.legend(loc="lower right")
+    finish_axes(ax)
+    fig.tight_layout()
 
     figure_path = output_dir / "rank_vs_sample_size.png"
-    plt.savefig(figure_path, dpi=200)
-    plt.close()
+    fig.savefig(figure_path, dpi=320, bbox_inches="tight")
+    plt.close(fig)
     return figure_path
 
 
 def write_perceptron_updates_plot(results: list[ExperimentResult], output_dir: Path) -> Path:
+    set_plot_style()
     output_dir.mkdir(parents=True, exist_ok=True)
     ns = [r.sample_size for r in results]
     updates = [r.perceptron_updates for r in results]
 
-    plt.figure(figsize=(8, 5))
-    plt.bar(ns, updates, width=220, color="#7a4eab")
-    plt.axvline(BIAS_DIM, color="black", linestyle="--", linewidth=1, label="d + 1 = 4097")
-    plt.xlabel("Number of randomly labeled examples")
-    plt.ylabel("Perceptron updates over 50 epochs")
-    plt.legend()
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(ns, updates, width=220, color=PLUM, alpha=0.95)
+    ax.axvline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="d + 1 = 4097")
+    ax.set_xlabel("Number of randomly labeled examples")
+    ax.set_ylabel("Perceptron updates over 50 epochs")
+    ax.legend(loc="upper left")
+    finish_axes(ax)
+    fig.tight_layout()
 
     figure_path = output_dir / "perceptron_updates.png"
-    plt.savefig(figure_path, dpi=200)
-    plt.close()
+    fig.savefig(figure_path, dpi=320, bbox_inches="tight")
+    plt.close(fig)
     return figure_path
 
 
 def write_long_run_plot(csv_path: Path, output_dir: Path) -> Path | None:
+    set_plot_style()
     if not csv_path.exists():
         return None
 
@@ -138,16 +181,18 @@ def write_long_run_plot(csv_path: Path, output_dir: Path) -> Path | None:
     ns = [row["sample_size"] for row in rows]
     epochs = [row["perceptron_epochs"] for row in rows]
 
-    plt.figure(figsize=(8, 5))
-    plt.bar(ns, epochs, width=220, color="#2f7d5a")
-    plt.xlabel("Number of randomly labeled AFHQ examples")
-    plt.ylabel("Epochs until perceptron reaches zero training error")
-    plt.title("Longer runs demonstrate perceptron-rule convergence")
-    plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.bar(ns, epochs, width=220, color=GREEN, alpha=0.95)
+    ax.axvline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="d + 1 = 4097")
+    ax.set_xlabel("Number of randomly labeled AFHQ examples")
+    ax.set_ylabel("Epochs until zero training error")
+    ax.legend(loc="upper left")
+    finish_axes(ax)
+    fig.tight_layout()
 
     figure_path = output_dir / "perceptron_long_run_epochs.png"
-    plt.savefig(figure_path, dpi=200)
-    plt.close()
+    fig.savefig(figure_path, dpi=320, bbox_inches="tight")
+    plt.close(fig)
     return figure_path
 
 
