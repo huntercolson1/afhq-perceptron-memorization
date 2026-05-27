@@ -1,8 +1,8 @@
 # High-Dimensional Perceptron Memorization on AFHQ
 
-This is a notebook-first, reproducible experiment about a subtle point in
-machine learning: high-dimensional linear models can sometimes perfectly fit
-arbitrary labels without learning the concept we care about.
+This is a personal-tutor style learning module about a subtle point in machine
+learning: high-dimensional linear models can sometimes perfectly fit arbitrary
+labels without learning the concept we care about.
 
 The concrete question:
 
@@ -13,6 +13,26 @@ The experiment uses Kaggle's `andrewmvd/animal-faces` dataset, also known as
 Animal Faces-HQ (AFHQ). It contains cat, dog, and wildlife face images at
 512 x 512 resolution. This experiment resizes cat/dog images to 64 x 64
 grayscale, so each image is a 4096-dimensional vector.
+
+## Inspiration
+
+This project was inspired by the perceptron and VC-dimension discussion in
+[*The Welch Labs Illustrated Guide to AI*](https://www.welchlabs.com/resources/ai-book-ezrzm-msrmc).
+The goal here is to turn that idea into a self-contained, runnable tutorial.
+
+## How to use this repo
+
+If you are new to this topic, read it in this order:
+
+1. Start with `docs/learning_module.md`.
+2. Work through `docs/worked_toy_example.md`.
+3. Try `docs/worksheet.md`.
+4. Download or print `docs/perceptron_vc_dimension_worksheet.pdf`.
+5. Read `docs/exact_separator_proof.md`.
+6. Read `docs/why_epochs_vary.md`.
+7. Read `docs/how_weights_store_information.md`.
+8. Open `notebooks/01_afhq_vc_perceptron_demo.ipynb`.
+9. Use `docs/glossary.md` whenever a term feels fuzzy.
 
 ## Folder structure
 
@@ -28,6 +48,8 @@ afhq_vc_perceptron_experiment/
   scripts/
     download_afhq.py
     run_experiment.py
+    make_tutorial_figures.py
+    build_worksheet_pdf.py
   src/afhq_vc_demo/
     config.py
     data.py
@@ -38,8 +60,17 @@ afhq_vc_perceptron_experiment/
     figures/
     tables/
   docs/
+    learning_module.md
+    worked_toy_example.md
+    worksheet.md
+    perceptron_vc_dimension_worksheet.pdf
     math_background.md
+    exact_separator_proof.md
+    why_epochs_vary.md
+    how_weights_store_information.md
     interpreting_results.md
+    proof_chain.md
+    glossary.md
     RUN_LOG.md
 ```
 
@@ -51,19 +82,33 @@ than learning cats versus dogs.
 
 It runs two checks:
 
-1. **VC construction check:** for `N <= 4097`, solve a linear system to find a
-   separating hyperplane for arbitrary random labels, when the image vectors are
-   full row rank after adding a bias column.
+1. **Separability proof:** for `N <= 4097`, verify full row rank after adding a
+   bias column, then directly solve `X_aug @ w = y` to prove a separating
+   hyperplane exists for arbitrary random labels.
 2. **Perceptron learning check:** run Rosenblatt's perceptron learning rule on
    the same randomized labels and report whether it reaches zero training error.
+
+The first check proves a separator exists. The perceptron convergence theorem
+then says the perceptron learning rule eventually converges on linearly
+separable data, although the number of updates can be much larger than the
+finite training budget shown here.
 
 For `N = 5000`, the VC guarantee no longer applies. The demo reports what
 actually happens on the resized AFHQ data.
 
 For a more beginner-friendly explanation, see:
 
+- `docs/learning_module.md`
+- `docs/worked_toy_example.md`
+- `docs/worksheet.md`
+- `docs/perceptron_vc_dimension_worksheet.pdf`
 - `docs/math_background.md`
+- `docs/exact_separator_proof.md`
+- `docs/why_epochs_vary.md`
+- `docs/how_weights_store_information.md`
 - `docs/interpreting_results.md`
+- `docs/proof_chain.md`
+- `docs/glossary.md`
 
 ## Setup
 
@@ -117,13 +162,32 @@ Outputs are written to `outputs/`:
 - `outputs/figures/training_error.png`
 - `outputs/figures/rank_vs_sample_size.png`
 - `outputs/figures/perceptron_updates.png`
+- `outputs/figures/perceptron_long_run_epochs.png`
+- `outputs/figures/perceptron_training_journey_n500.png`
+- `outputs/figures/random_label_examples_n500.png`
+- `outputs/figures/weight_update_story_n500.png`
+
+To rebuild the tutorial figures:
+
+```bash
+python scripts/make_tutorial_figures.py
+```
+
+To rebuild the downloadable worksheet PDF:
+
+```bash
+python -m playwright install chromium
+python scripts/build_worksheet_pdf.py
+```
+
+That PDF build also expects `pandoc` to be available on your system path.
 
 ## Verified result on this Mac
 
 The exact Kaggle dataset downloaded successfully on 2026-05-27, and the notebook
 executed top-to-bottom. The durable result table is:
 
-| N | rank(X with bias) | VC construction train error | Perceptron train error | Perceptron converged? |
+| N | rank(X with bias) | Exact separator proof error | Perceptron train error | Perceptron converged? |
 |---:|---:|---:|---:|:---|
 | 500 | 500 | 0.0000 | 0.0000 | yes |
 | 1000 | 1000 | 0.0000 | 0.0340 | no |
@@ -133,6 +197,31 @@ executed top-to-bottom. The durable result table is:
 | 5000 | 4097 | 0.0262 | 0.2252 | no |
 
 See `docs/RUN_LOG.md` for commands and verification evidence.
+
+## Perceptron learning-rule convergence demo
+
+The 50-epoch sweep intentionally shows a practical training budget. To
+demonstrate the "given enough iterations" part more directly, longer perceptron
+runs were also performed on randomized labels:
+
+| N | Max epochs allowed | Epochs to zero error | Updates | Converged? |
+|---:|---:|---:|---:|:---|
+| 500 | 50 | 48 | 2638 | yes |
+| 1000 | 1000 | 80 | 9046 | yes |
+| 2000 | 2000 | 214 | 44162 | yes |
+| 4096 | 5000 | 945 | 365288 | yes |
+| 4097 | 5000 | 1228 | 381320 | yes |
+
+These runs use the actual perceptron learning rule. The rank proof explains why
+convergence is possible; the longer runs show it happening concretely.
+
+The exact epoch count is not predicted by the VC-dimension rule. It depends on
+the margin, the data order, the random labels, and the feature scaling. See
+`docs/why_epochs_vary.md` for the perceptron mistake-bound explanation.
+
+The learned weight vector can also be reshaped into a 64 x 64 image because each
+weight corresponds to one pixel. See `docs/how_weights_store_information.md` and
+`outputs/figures/weight_update_story_n500.png` for the visual explanation.
 
 ## Quick synthetic smoke test
 

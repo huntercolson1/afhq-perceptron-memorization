@@ -44,3 +44,50 @@ def run_perceptron(
 
     scores = x @ w + b
     return float(np.mean(y * scores <= 0)), max_epochs, updates, False
+
+
+def run_perceptron_with_history(
+    x: np.ndarray,
+    y: np.ndarray,
+    max_epochs: int,
+    seed: int,
+    snapshot_epochs: set[int] | None = None,
+) -> tuple[np.ndarray, float, list[dict[str, float | int]], dict[int, tuple[np.ndarray, float]]]:
+    """Run the perceptron while keeping epoch-level error and selected weights."""
+    rng = np.random.default_rng(seed)
+    w = np.zeros(x.shape[1], dtype=np.float64)
+    b = 0.0
+    updates = 0
+    history: list[dict[str, float | int]] = []
+    snapshots: dict[int, tuple[np.ndarray, float]] = {}
+    snapshot_epochs = snapshot_epochs or set()
+
+    if 0 in snapshot_epochs:
+        snapshots[0] = (w.copy(), b)
+
+    for epoch in range(1, max_epochs + 1):
+        mistakes = 0
+        for i in rng.permutation(x.shape[0]):
+            if y[i] * float(x[i] @ w + b) <= 0:
+                w += y[i] * x[i]
+                b += float(y[i])
+                updates += 1
+                mistakes += 1
+
+        scores = x @ w + b
+        train_error = float(np.mean(y * scores <= 0))
+        history.append(
+            {
+                "epoch": epoch,
+                "mistakes": mistakes,
+                "updates": updates,
+                "train_error": train_error,
+            }
+        )
+        if epoch in snapshot_epochs:
+            snapshots[epoch] = (w.copy(), b)
+        if mistakes == 0:
+            snapshots.setdefault(epoch, (w.copy(), b))
+            break
+
+    return w, b, history, snapshots

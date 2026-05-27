@@ -26,11 +26,11 @@ def write_summary(results: list[ExperimentResult], output_dir: Path, source_name
     output_dir.mkdir(parents=True, exist_ok=True)
     md_path = output_dir / "summary.md"
     with md_path.open("w") as f:
-        f.write("# AFHQ Perceptron VC-Dimension Demo Results\n\n")
+        f.write("# AFHQ Perceptron Memorization Results\n\n")
         f.write(f"Data source: {source_name}\n\n")
         f.write(f"Image shape: {IMAGE_SIZE} x {IMAGE_SIZE} grayscale\n\n")
         f.write(f"Input dimension: {INPUT_DIM}; bias-augmented dimension: {BIAS_DIM}\n\n")
-        f.write("| N | rank(X with bias) | VC construction train error | Perceptron train error | Perceptron converged? |\n")
+        f.write("| N | rank(X with bias) | Exact separator proof error | Perceptron train error | Perceptron converged? |\n")
         f.write("|---:|---:|---:|---:|:---|\n")
         for r in results:
             f.write(
@@ -40,9 +40,16 @@ def write_summary(results: list[ExperimentResult], output_dir: Path, source_name
             )
         f.write("\nLabels were randomized. Zero training error means memorization of an arbitrary split.\n")
         f.write(
-            "\nThe linear-system row reports an exact-value construction, not a perceptron training trace. "
+            "\nFor `N <= 4097`, `rank(X with bias) = N`, so the bias-augmented data matrix "
+            "has full row rank. That proves an exact linear separator exists for any labels "
+            "on those examples, including the randomized labels used here.\n"
+        )
+        f.write(
+            "\nThe exact-separator proof row reports a direct solve of `X_aug @ w = y`, not a perceptron training trace. "
             "The perceptron row reports finite training with the configured epoch limit; non-convergence "
-            "within that limit is evidence of practical difficulty, not a formal proof of non-separability.\n"
+            "within that limit is evidence of practical difficulty, not a formal proof of non-separability. "
+            "The perceptron convergence theorem is the formal link from separability to eventual convergence "
+            "of the perceptron learning rule.\n"
         )
     return md_path
 
@@ -54,7 +61,7 @@ def write_training_error_plot(results: list[ExperimentResult], output_dir: Path)
     p_errors = [r.perceptron_train_error for r in results]
 
     plt.figure(figsize=(8, 5))
-    plt.plot(ns, vc_errors, marker="o", label="linear system construction")
+    plt.plot(ns, vc_errors, marker="o", label="exact separator proof: solve Xw = y")
     plt.plot(ns, p_errors, marker="o", label="perceptron learning rule")
     plt.axvline(BIAS_DIM, color="black", linestyle="--", linewidth=1, label="d + 1 = 4097")
     plt.xlabel("Number of randomly labeled examples")
@@ -109,6 +116,41 @@ def write_perceptron_updates_plot(results: list[ExperimentResult], output_dir: P
     return figure_path
 
 
+def write_long_run_plot(csv_path: Path, output_dir: Path) -> Path | None:
+    if not csv_path.exists():
+        return None
+
+    rows = []
+    with csv_path.open() as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(
+                {
+                    "sample_size": int(row["sample_size"]),
+                    "perceptron_epochs": int(row["perceptron_epochs"]),
+                    "perceptron_updates": int(row["perceptron_updates"]),
+                }
+            )
+    if not rows:
+        return None
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ns = [row["sample_size"] for row in rows]
+    epochs = [row["perceptron_epochs"] for row in rows]
+
+    plt.figure(figsize=(8, 5))
+    plt.bar(ns, epochs, width=220, color="#2f7d5a")
+    plt.xlabel("Number of randomly labeled AFHQ examples")
+    plt.ylabel("Epochs until perceptron reaches zero training error")
+    plt.title("Longer runs demonstrate perceptron-rule convergence")
+    plt.tight_layout()
+
+    figure_path = output_dir / "perceptron_long_run_epochs.png"
+    plt.savefig(figure_path, dpi=200)
+    plt.close()
+    return figure_path
+
+
 def write_outputs(results: list[ExperimentResult], output_root: Path, source_name: str) -> None:
     write_results_csv(results, output_root / "tables")
     write_summary(results, output_root, source_name)
@@ -116,3 +158,4 @@ def write_outputs(results: list[ExperimentResult], output_root: Path, source_nam
     write_training_error_plot(results, figure_dir)
     write_rank_plot(results, figure_dir)
     write_perceptron_updates_plot(results, figure_dir)
+    write_long_run_plot(output_root / "tables" / "perceptron_long_run.csv", figure_dir)

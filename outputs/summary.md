@@ -1,4 +1,4 @@
-# AFHQ Perceptron VC-Dimension Demo Results
+# AFHQ Perceptron Memorization Results
 
 Data source: Kaggle AFHQ dataset (andrewmvd/animal-faces), local data/raw
 
@@ -6,7 +6,7 @@ Image shape: 64 x 64 grayscale
 
 Input dimension: 4096; bias-augmented dimension: 4097
 
-| N | rank(X with bias) | VC construction train error | Perceptron train error | Perceptron converged? |
+| N | rank(X with bias) | Exact separator proof error | Perceptron train error | Perceptron converged? |
 |---:|---:|---:|---:|:---|
 | 500 | 500 | 0.0000 | 0.0000 | yes |
 | 1000 | 1000 | 0.0000 | 0.0340 | no |
@@ -17,4 +17,6 @@ Input dimension: 4096; bias-augmented dimension: 4097
 
 Labels were randomized. Zero training error means memorization of an arbitrary split.
 
-The linear-system row reports an exact-value construction, not a perceptron training trace. The perceptron row reports finite training with the configured epoch limit; non-convergence within that limit is evidence of practical difficulty, not a formal proof of non-separability.
+For `N <= 4097`, `rank(X with bias) = N`, so the bias-augmented data matrix has full row rank. That proves an exact linear separator exists for any labels on those examples, including the randomized labels used here.
+
+The exact-separator proof row reports a direct solve of `X_aug @ w = y`, not a perceptron training trace. The perceptron row reports finite training with the configured epoch limit; non-convergence within that limit is evidence of practical difficulty, not a formal proof of non-separability. The perceptron convergence theorem is the formal link from separability to eventual convergence of the perceptron learning rule.

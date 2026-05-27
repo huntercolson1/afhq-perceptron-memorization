@@ -6,6 +6,8 @@ __pycache__/
 
 # Keep generated outputs local unless deliberately packaging the experiment.
 outputs/**/*.tmp
+outputs/long_run_probe*/
+outputs/long_run_boundary/
 
 # AFHQ is large and should not be committed to source control.
 data/raw/kaggle_animal_faces/

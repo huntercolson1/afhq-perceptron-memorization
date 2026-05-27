@@ -44,7 +44,7 @@ Command:
 
 Results:
 
-| N | rank(X with bias) | VC construction train error | Perceptron train error | Perceptron converged? |
+| N | rank(X with bias) | Exact separator proof error | Perceptron train error | Perceptron converged? |
 |---:|---:|---:|---:|:---|
 | 500 | 500 | 0.0000 | 0.0000 | yes |
 | 1000 | 1000 | 0.0000 | 0.0340 | no |
@@ -74,8 +74,64 @@ PY
 Observed verification:
 
 ```text
-3 passed in 4.94s
-validated notebooks/01_afhq_vc_perceptron_demo.ipynb with 17 cells
+3 passed in 0.89s
+validated notebooks/01_afhq_vc_perceptron_demo.ipynb with 21 cells
+notebook executed successfully with nbconvert
 ```
 
 The temporary smoke output folder was removed after verification so the durable outputs reflect the AFHQ run.
+
+## Longer Perceptron Learning-Rule Runs
+
+These runs demonstrate the perceptron learning rule reaching zero training
+error when given a larger epoch budget:
+
+```bash
+.venv/bin/python scripts/run_experiment.py --data-root data/raw/kaggle_animal_faces --sample-sizes 1000 --max-epochs 1000 --output-dir outputs/long_run_probe
+.venv/bin/python scripts/run_experiment.py --data-root data/raw/kaggle_animal_faces --sample-sizes 2000 --max-epochs 2000 --output-dir outputs/long_run_probe_2000
+.venv/bin/python scripts/run_experiment.py --data-root data/raw/kaggle_animal_faces --sample-sizes 4096 4097 --max-epochs 5000 --output-dir outputs/long_run_boundary
+```
+
+Durable summary copied to `outputs/tables/perceptron_long_run.csv`:
+
+| N | Max epochs allowed | Epochs to zero error | Updates | Converged? |
+|---:|---:|---:|---:|:---|
+| 500 | 50 | 48 | 2638 | yes |
+| 1000 | 1000 | 80 | 9046 | yes |
+| 2000 | 2000 | 214 | 44162 | yes |
+| 4096 | 5000 | 945 | 365288 | yes |
+| 4097 | 5000 | 1228 | 381320 | yes |
+
+## Tutorial Figure Generation
+
+Command:
+
+```bash
+.venv/bin/python scripts/make_tutorial_figures.py
+```
+
+Durable figures:
+
+```text
+outputs/figures/perceptron_training_journey_n500.png
+outputs/figures/random_label_examples_n500.png
+outputs/figures/weight_update_story_n500.png
+```
+
+The 500-example tutorial figures use the same sampled subset and randomized
+labels as the main experiment.
+
+## Worksheet PDF Generation
+
+Command:
+
+```bash
+.venv/bin/python scripts/build_worksheet_pdf.py
+```
+
+Durable files:
+
+```text
+docs/perceptron_vc_dimension_worksheet.html
+docs/perceptron_vc_dimension_worksheet.pdf
+```

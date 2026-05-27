@@ -59,6 +59,56 @@ d + 1 = 4097
 So below or around 4097 examples, a zero-error classifier may simply be
 memorizing the training set.
 
+## The Proof Idea Used Here
+
+The experiment does not merely train a perceptron and hope for a good result.
+It checks a stronger mathematical condition.
+
+After adding the bias column, the data matrix has 4097 columns. For every sample
+size up to 4097 in this run, the matrix had full row rank:
+
+```text
+rank(X_aug) = N
+```
+
+Full row rank means there is a weight vector that can match any chosen labels on
+those examples. In symbols, for labels `y` in `{-1, +1}`:
+
+```text
+X_aug @ w = y
+```
+
+That immediately gives a perfect separator, because every score has the same
+sign as its label.
+
+The actual cat/dog labels are one possible choice of `y`. Random labels are
+another possible choice of `y`. Showing that random labels can be separated is
+the stronger demonstration, because random labels cannot encode a real visual
+cat/dog rule.
+
+The perceptron convergence theorem then supplies the learning-rule link: if the
+training set is linearly separable, the perceptron update rule converges after a
+finite number of updates. The finite run in this repository is an illustration;
+the rank/exact-separator check is the separability proof.
+
+## Why The Number Of Epochs Is Hard To Predict
+
+The VC-dimension result does not say how many epochs training will take.
+
+The classic perceptron mistake bound says that if the data are separable with
+margin `gamma`, and every input has norm at most `R`, then the perceptron makes
+at most:
+
+```text
+(R / gamma)^2
+```
+
+mistakes before converging.
+
+This tells us why small-margin separators can be slow to find. It does not
+usually give a clean exact epoch prediction for one image dataset, one random
+label assignment, and one shuffled training order.
+
 ## What This Does Not Mean
 
 It does not mean the model understands cats and dogs.
