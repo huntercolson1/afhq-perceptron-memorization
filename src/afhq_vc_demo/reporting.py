@@ -11,11 +11,11 @@ from .config import BIAS_DIM, IMAGE_SIZE, INPUT_DIM
 from .experiment import ExperimentResult
 
 INK = "#18212f"
-MUTED = "#657184"
-BLUE = "#2674b8"
-GREEN = "#277a55"
-PLUM = "#7a4eab"
-GOLD = "#c58b2d"
+MUTED = "#5f6875"
+ACCENT = "#7c4a3a"
+GREEN = "#4f6f64"
+PLUM = "#6f5b8f"
+GOLD = "#b37a24"
 PAPER = "#fbfaf7"
 GRID = "#d8d2c7"
 
@@ -99,7 +99,7 @@ def write_training_error_plot(results: list[ExperimentResult], output_dir: Path)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(ns, vc_errors, marker="o", linewidth=2.2, color=GREEN, label="exact separator proof")
-    ax.plot(ns, p_errors, marker="o", linewidth=2.2, color=BLUE, label="perceptron after 50 epochs")
+    ax.plot(ns, p_errors, marker="o", linewidth=2.2, color=ACCENT, label="perceptron after 50 epochs")
     ax.axvline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="d + 1 = 4097")
     ax.set_xlabel("Number of randomly labeled examples")
     ax.set_ylabel("Training error")
@@ -121,7 +121,7 @@ def write_rank_plot(results: list[ExperimentResult], output_dir: Path) -> Path:
     ranks = [r.rank_with_bias for r in results]
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(ns, ranks, marker="o", linewidth=2.2, color=BLUE, label="observed rank")
+    ax.plot(ns, ranks, marker="o", linewidth=2.2, color=ACCENT, label="observed rank")
     ax.plot(ns, ns, linestyle=":", linewidth=1.6, color=MUTED, label="rank = N")
     ax.axhline(BIAS_DIM, color=GOLD, linestyle="--", linewidth=1.6, label="maximum rank = 4097")
     ax.set_xlabel("Number of examples")

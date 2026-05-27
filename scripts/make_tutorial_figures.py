@@ -18,11 +18,11 @@ from afhq_vc_demo.data import load_afhq_cat_dog  # noqa: E402
 from afhq_vc_demo.models import run_perceptron_with_history  # noqa: E402
 
 INK = "#18212f"
-MUTED = "#657184"
-BLUE = "#2674b8"
-GREEN = "#277a55"
-GOLD = "#c58b2d"
-PLUM = "#7a4eab"
+MUTED = "#5f6875"
+ACCENT = "#7c4a3a"
+GREEN = "#4f6f64"
+GOLD = "#b37a24"
+PLUM = "#6f5b8f"
 PAPER = "#fbfaf7"
 PANEL = "#f2efe8"
 GRID = "#d8d2c7"
@@ -93,7 +93,7 @@ def add_round_box(ax, xy, width, height, text, fc=PANEL, ec=INK, fontsize=11, lw
     return box
 
 
-def add_arrow(ax, start, end, color=BLUE, lw=1.8, rad=0.0):
+def add_arrow(ax, start, end, color=ACCENT, lw=1.8, rad=0.0):
     arrow = FancyArrowPatch(
         start,
         end,
@@ -118,7 +118,7 @@ def make_perceptron_anatomy(output_dir: Path) -> None:
         ax.add_patch(Circle((x, y), 0.045, facecolor="#ffffff", edgecolor=INK, lw=1.4, transform=ax.transAxes))
         ax.text(x, y, label, ha="center", va="center", fontsize=13, color=INK, transform=ax.transAxes)
         ax.text(0.25, y + 0.03, weight, ha="center", va="center", fontsize=12, color=MUTED, transform=ax.transAxes)
-        add_arrow(ax, (x + 0.05, y), (0.44, 0.54), color=BLUE, lw=1.4, rad=0.04 if y > 0.55 else -0.04)
+        add_arrow(ax, (x + 0.05, y), (0.44, 0.54), color=ACCENT, lw=1.4, rad=0.04 if y > 0.55 else -0.04)
 
     ax.text(0.08, 0.08, "4096 pixel values", ha="center", color=MUTED, fontsize=10, transform=ax.transAxes)
 
@@ -127,7 +127,7 @@ def make_perceptron_anatomy(output_dir: Path) -> None:
     ax.text(0.50, 0.48, "score", ha="center", va="center", fontsize=10, color=MUTED, transform=ax.transAxes)
 
     add_round_box(ax, (0.67, 0.45), 0.17, 0.18, "sign check\n$s \\geq 0$?", fc="#ffffff", ec=INK, fontsize=12)
-    add_arrow(ax, (0.62, 0.54), (0.67, 0.54), color=BLUE)
+    add_arrow(ax, (0.62, 0.54), (0.67, 0.54), color=ACCENT)
     add_arrow(ax, (0.84, 0.59), (0.94, 0.75), color=GREEN, rad=0.18)
     add_arrow(ax, (0.84, 0.49), (0.94, 0.33), color=PLUM, rad=-0.18)
     ax.text(0.95, 0.77, r"predict $+1$", ha="left", va="center", fontsize=12, color=GREEN, transform=ax.transAxes)
@@ -138,11 +138,11 @@ def make_perceptron_anatomy(output_dir: Path) -> None:
 
 
 def make_linear_system_figure(output_dir: Path) -> None:
-    fig, ax = plt.subplots(figsize=(11, 4.25))
+    fig, ax = plt.subplots(figsize=(11.5, 4.8))
     ax.axis("off")
 
-    matrix_x, matrix_y = 0.08, 0.31
-    cell_w, cell_h = 0.035, 0.08
+    matrix_x, matrix_y = 0.075, 0.33
+    cell_w, cell_h = 0.035, 0.075
     rows, cols = 5, 9
     for r in range(rows):
         for c in range(cols):
@@ -158,17 +158,17 @@ def make_linear_system_figure(output_dir: Path) -> None:
                     transform=ax.transAxes,
                 )
             )
-    ax.text(matrix_x + cols * cell_w / 2, 0.81, r"$X_{\mathrm{aug}}$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
-    ax.text(matrix_x + cols * cell_w / 2, 0.25, r"$N$ rows by $4097$ columns", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
-    ax.text(matrix_x + (cols - 0.5) * cell_w, 0.21, "bias\ncolumn", ha="center", fontsize=9, color=GOLD, transform=ax.transAxes)
+    ax.text(matrix_x + cols * cell_w / 2, 0.80, r"$X_{\mathrm{aug}}$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
+    ax.text(matrix_x + cols * cell_w / 2, 0.22, r"$N$ image rows, $4097$ columns", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
+    ax.text(matrix_x + (cols - 0.5) * cell_w, 0.16, "bias column", ha="center", fontsize=9, color=GOLD, transform=ax.transAxes)
 
     ax.text(0.45, 0.52, r"$\times$", ha="center", va="center", fontsize=24, color=INK, transform=ax.transAxes)
 
     vx, vy = 0.51, 0.31
     for r in range(rows):
         ax.add_patch(Rectangle((vx, vy + (rows - 1 - r) * cell_h), 0.055, cell_h, facecolor="#ffffff", edgecolor=GRID, lw=0.8, transform=ax.transAxes))
-    ax.text(vx + 0.027, 0.81, r"$\tilde{w}$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
-    ax.text(vx + 0.027, 0.25, "weights\n+ bias", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
+    ax.text(vx + 0.027, 0.80, r"$\tilde{w}$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
+    ax.text(vx + 0.027, 0.22, "unknown weights\nand bias", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
 
     ax.text(0.63, 0.52, r"$=$", ha="center", va="center", fontsize=24, color=INK, transform=ax.transAxes)
 
@@ -177,8 +177,8 @@ def make_linear_system_figure(output_dir: Path) -> None:
     for r, val in enumerate(yvals):
         ax.add_patch(Rectangle((yx, yy + (rows - 1 - r) * cell_h), 0.065, cell_h, facecolor="#ffffff", edgecolor=GRID, lw=0.8, transform=ax.transAxes))
         ax.text(yx + 0.032, yy + (rows - 1 - r) * cell_h + cell_h / 2, val, ha="center", va="center", fontsize=10, color=INK, transform=ax.transAxes)
-    ax.text(yx + 0.032, 0.81, r"$y$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
-    ax.text(yx + 0.032, 0.25, "random\nlabels", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
+    ax.text(yx + 0.032, 0.80, r"$y$", ha="center", fontsize=18, color=INK, transform=ax.transAxes)
+    ax.text(yx + 0.032, 0.22, "assigned labels", ha="center", fontsize=10, color=MUTED, transform=ax.transAxes)
 
     fig.savefig(output_dir / "linear_system_construction.png", dpi=320, bbox_inches="tight")
     plt.close(fig)
@@ -188,21 +188,35 @@ def make_capacity_boundary_figure(output_dir: Path) -> None:
     fig, ax = plt.subplots(figsize=(9.5, 5.4))
     sample_sizes = np.array([500, 1000, 2000, 4096, 4097, 5000])
     ranks = np.array([500, 1000, 2000, 4096, 4097, 4097])
-    ax.plot(sample_sizes, ranks, color=BLUE, linewidth=2.4, marker="o", markersize=7)
+    ax.plot(sample_sizes, ranks, color=ACCENT, linewidth=2.4, marker="o", markersize=7)
     ax.axhline(4097, color=GOLD, linestyle="--", linewidth=1.8)
     ax.axvline(4097, color=GOLD, linestyle="--", linewidth=1.8)
     ax.fill_between([0, 4097], [0, 4097], [4097, 4097], color=GREEN, alpha=0.08)
     ax.fill_between([4097, 5200], [0, 0], [4097, 4097], color=PLUM, alpha=0.06)
     ax.annotate(
-        "VC boundary:\n4096 pixels + 1 bias",
+        "4097 parameters:\n4096 pixels + bias",
         xy=(4097, 4097),
-        xytext=(2800, 4620),
+        xytext=(2700, 4620),
         arrowprops={"arrowstyle": "->", "color": GOLD, "lw": 1.6},
         fontsize=11,
         color=INK,
     )
-    ax.text(900, 3800, "full row rank\nobserved here", color=GREEN, fontsize=12)
-    ax.text(4300, 1450, "rank cannot exceed\n4097 columns", color=PLUM, fontsize=12)
+    ax.annotate(
+        "rank follows the number\nof examples while the\nrows remain independent",
+        xy=(2000, 2000),
+        xytext=(620, 2850),
+        arrowprops={"arrowstyle": "->", "color": GREEN, "lw": 1.3},
+        fontsize=11,
+        color=GREEN,
+    )
+    ax.annotate(
+        "after the boundary,\nrank cannot rise above\nthe number of columns",
+        xy=(4680, 4097),
+        xytext=(4250, 1850),
+        arrowprops={"arrowstyle": "->", "color": PLUM, "lw": 1.3},
+        fontsize=11,
+        color=PLUM,
+    )
     ax.set_xlim(0, 5200)
     ax.set_ylim(0, 5000)
     ax.set_xlabel("number of training examples, N")
@@ -238,7 +252,7 @@ def make_title_plate(data_root: Path, output_dir: Path, seed: int = 7) -> None:
         "",
         xy=(0.9, 0.5),
         xytext=(0.1, 0.5),
-        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": BLUE},
+        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": ACCENT},
         xycoords=ax_arrow_1.transAxes,
     )
 
@@ -268,7 +282,7 @@ def make_title_plate(data_root: Path, output_dir: Path, seed: int = 7) -> None:
         "",
         xy=(0.9, 0.5),
         xytext=(0.1, 0.5),
-        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": BLUE},
+        arrowprops={"arrowstyle": "->", "lw": 1.8, "color": ACCENT},
         xycoords=ax_arrow_2.transAxes,
     )
 
@@ -344,33 +358,39 @@ def make_concept_figures(output_dir: Path) -> None:
     fig.savefig(output_dir / "xor_nonseparable.png", dpi=320, bbox_inches="tight")
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(10.8, 3.8))
+    fig, ax = plt.subplots(figsize=(12.8, 3.0))
     ax.axis("off")
     boxes = [
-        ("AFHQ cat/dog\nimages", 0.08),
-        ("64 x 64\ngrayscale", 0.25),
-        ("4096-pixel\nvectors", 0.42),
-        ("add bias:\n4097 columns", 0.59),
-        ("random labels\n-1 or +1", 0.76),
-        ("separator proof\nand perceptron", 0.92),
+        ("AFHQ cat/dog\nimages", 0.085, 0.115),
+        ("64 x 64\ngrayscale", 0.245, 0.115),
+        ("4096-pixel\nvectors", 0.405, 0.12),
+        ("add bias column:\n4097 parameters", 0.575, 0.145),
+        ("random labels:\n-1 or +1", 0.750, 0.12),
+        ("separator proof\nand perceptron", 0.910, 0.125),
     ]
-    for idx, (text, x) in enumerate(boxes):
-        ax.text(
-            x,
-            0.55,
-            text,
-            ha="center",
-            va="center",
-            fontsize=11,
-            bbox={"boxstyle": "round,pad=0.45", "facecolor": "#ffffff", "edgecolor": INK},
-            transform=ax.transAxes,
+    box_h = 0.31
+    y_mid = 0.55
+    for idx, (text, x, box_w) in enumerate(boxes):
+        ax.add_patch(
+            FancyBboxPatch(
+                (x - box_w / 2, y_mid - box_h / 2),
+                box_w,
+                box_h,
+                boxstyle="round,pad=0.018,rounding_size=0.012",
+                linewidth=1.15,
+                edgecolor=INK,
+                facecolor="#ffffff",
+                transform=ax.transAxes,
+            )
         )
+        ax.text(x, y_mid, text, ha="center", va="center", fontsize=10.5, color=INK, transform=ax.transAxes)
         if idx < len(boxes) - 1:
+            next_x, next_w = boxes[idx + 1][1], boxes[idx + 1][2]
             ax.annotate(
                 "",
-                xy=(boxes[idx + 1][1] - 0.07, 0.55),
-                xytext=(x + 0.07, 0.55),
-                arrowprops={"arrowstyle": "->", "lw": 1.6, "color": BLUE},
+                xy=(next_x - next_w / 2 - 0.014, y_mid),
+                xytext=(x + box_w / 2 + 0.014, y_mid),
+                arrowprops={"arrowstyle": "->", "lw": 1.45, "color": ACCENT, "shrinkA": 0, "shrinkB": 0},
                 xycoords=ax.transAxes,
                 textcoords=ax.transAxes,
             )
@@ -413,7 +433,7 @@ def make_training_journey(data_root: Path, output_dir: Path, seed: int = 7) -> N
     grid = fig.add_gridspec(3, 4, height_ratios=[1.15, 1, 1], hspace=0.45, wspace=0.25)
 
     ax = fig.add_subplot(grid[0, :])
-    ax.plot([r["epoch"] for r in history], [r["train_error"] for r in history], marker="o", color=BLUE, linewidth=2.0)
+    ax.plot([r["epoch"] for r in history], [r["train_error"] for r in history], marker="o", color=ACCENT, linewidth=2.0)
     ax.set_xlabel("Epoch")
     ax.set_ylabel("Training error")
     ax.set_ylim(-0.02, 0.55)

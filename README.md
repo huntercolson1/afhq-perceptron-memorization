@@ -26,9 +26,9 @@ The polished learning module is available in two formats:
 - [HTML textbook chapter](docs/perceptron_memorization_textbook.html)
 - [PDF textbook chapter](docs/perceptron_memorization_textbook.pdf)
 
-The source for the chapter is:
-
-- [book/perceptron_memorization_textbook.qmd](book/perceptron_memorization_textbook.qmd)
+The rendered chapter is the public teaching artifact. The repository keeps the
+experiment code, notebook, figures, tables, and final HTML/PDF outputs together
+so the result can be read first and reproduced second.
 
 ## Inspiration
 
@@ -89,9 +89,6 @@ capacity boundary; it does not predict a specific epoch count.
 afhq_vc_perceptron_experiment/
   README.md
   requirements.txt
-  book/
-    perceptron_memorization_textbook.qmd
-    textbook.scss
   docs/
     perceptron_memorization_textbook.html
     perceptron_memorization_textbook.pdf
@@ -155,24 +152,12 @@ python scripts/run_experiment.py --data-root data/raw/kaggle_animal_faces --samp
 python scripts/make_tutorial_figures.py
 ```
 
-The main outputs are written to:
+The main reproducible outputs are written to:
 
 - `outputs/tables/results.csv`
 - `outputs/tables/perceptron_long_run.csv`
 - `outputs/summary.md`
 - `outputs/figures/`
-
-## Render the chapter
-
-The chapter is written in Quarto.
-
-```bash
-quarto render book/perceptron_memorization_textbook.qmd --to html --output-dir ../docs
-quarto render book/perceptron_memorization_textbook.qmd --to pdf --output-dir ../docs
-```
-
-The rendered files are committed under `docs/` so they can be opened directly
-from GitHub Pages or downloaded as a PDF.
 
 ## Synthetic smoke test
 
